@@ -1,0 +1,12 @@
+<!-- templates/index.html 실시간 영상 보여주는 html페이지-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Raspberry Pi Camera Stream</title>
+</head>
+<body>
+    <h1>Live Camera Stream</h1>
+    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+</body>
+</html>
