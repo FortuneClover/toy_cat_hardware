@@ -3,11 +3,23 @@ from flask import Flask, render_template, Response, send_from_directory, jsonify
 from camera import Camera
 
 import threading
-import datetime
+from datetime import datetime, timedelta
 import os
 import re
 import cv2
 import time
+
+import sys
+import os
+
+# 현재 파일 기준 상위 폴더 경로 얻기
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+# 상위 폴더를 모듈 경로에 추가
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+from Subtraction import get_total_motion
 
 """
 CORS 보안 문제 발생한다면 
@@ -41,7 +53,7 @@ def save_video():
             # if frame.shape[2] == 4:
             #     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
-            now = datetime.datetime.now()
+            now = datetime.now()
             date_str = now.strftime('%Y-%m-%d')
             minute_str = now.strftime('%Y-%m-%d %H:%M') # 테스트 용으로 1분마다 녹화파일 저장 코드 
             time_str = now.strftime('%H-%M-%S')
@@ -70,12 +82,12 @@ def save_video():
             video_writer.release()
 
 # 비디오 저장 쓰레드 시작
-# threading.Thread(target=save_video, daemon=True).start()
+threading.Thread(target=save_video, daemon=True).start()
 
 #실시간 영상 스트리밍
 def gen(camera):
     while True:
-        frame = camera.get_frame()
+        frame = camera.get_frame("byte")
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
@@ -241,10 +253,13 @@ def serve_video(date, filename):
 
 # ✅ 요청한 전체 움직임 값 반환
 
+
+
 @app.route("/gettotal", methods=["GET"])
 def provide_total():
+    saved_videos_path = VIDEO_PATH + str(datetime.now().date() - timedelta(days=-1))
     try:
-        value = int(gettotal())
+        value = int(get_total_motion(saved_videos_path))
         return jsonify({"amount": value}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -28,11 +28,13 @@ class Camera:
         self.picam2.configure(self.picam2.create_video_configuration(main={"size": (2592, 1944)}))
         self.picam2.start()
 
-    def get_frame(self):
+    def get_frame(self, mode="default"):
         frame = self.picam2.capture_array()
         if frame.shape[2] == 4:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
         undistorted_frame = cv2.undistort(frame, mtx, dist)
-        ret, jpeg = cv2.imencode('.jpg', frame)
+        if mode == "byte":
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            return jpeg.tobytes()
 
-        return jpeg.tobytes()
+        return undistorted_frame
