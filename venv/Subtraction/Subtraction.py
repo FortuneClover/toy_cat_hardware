@@ -71,7 +71,7 @@ def subtraction(video_path):
 
 def get_total_motion(video_path):
     total = subtraction(video_path)
-    # print(f"Total motion: {total:.2f}")
+    print(f"운동량: {total:.2f}")
     return total
 
 

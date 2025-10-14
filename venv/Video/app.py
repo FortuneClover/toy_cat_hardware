@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, render_template, Response, send_from_directory, jsonify, request
-from camera import Camera
+# from camera import Camera
 
 import threading
 from datetime import datetime, timedelta
@@ -20,6 +20,7 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from Subtraction import get_total_motion
+from Laser import laser_on, laser_off
 
 """
 CORS 보안 문제 발생한다면 
@@ -31,74 +32,74 @@ CORS 보안 문제 발생한다면
 """
 app = Flask(__name__)
 VIDEO_PATH = '/home/pc/toy_cat/venv/Video/recordings'
-camera = Camera()
+# camera = Camera()
 CHUNK_SIZE = 8192
 
 # 백그라운드 실행으로 비디오 저장할 쓰레드 함수
-def save_video():
-    current_date = None
-    video_writer = None
-    fps = 30 #초당 15프레임 
+# def save_video():
+#     current_date = None
+#     video_writer = None
+#     fps = 30 #초당 15프레임 
 
-    #하루마다 새파일로 비디오 녹화
-    try:
-        while True:
-            frame = camera.get_frame()
-            # if frame is None:
-            #     print("❌ 프레임이 None입니다.")
-            # else:
-            #     print("✅ 프레임 캡처 성공:", frame.shape)
+#     #하루마다 새파일로 비디오 녹화
+#     try:
+#         while True:
+#             # frame = camera.get_frame()
+#             # if frame is None:
+#             #     print("❌ 프레임이 None입니다.")
+#             # else:
+#             #     print("✅ 프레임 캡처 성공:", frame.shape)
 
-            # 4채널 → 3채널 BGR로 변환
-            # if frame.shape[2] == 4:
-            #     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+#             # 4채널 → 3채널 BGR로 변환
+#             # if frame.shape[2] == 4:
+#             #     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
-            now = datetime.now()
-            date_str = now.strftime('%Y-%m-%d')
-            minute_str = now.strftime('%Y-%m-%d %H:%M') # 테스트 용으로 1분마다 녹화파일 저장 코드 
-            time_str = now.strftime('%H-%M-%S')
-            #하루마다 새파일 만들고 녹화하는 코드 
-            #if current_date != date_str:
-            if current_date != minute_str: # 테스트 용으로 1분마다 녹화파일 저장 코드
-                if video_writer:
-                    video_writer.release()
+#             now = datetime.now()
+#             date_str = now.strftime('%Y-%m-%d')
+#             minute_str = now.strftime('%Y-%m-%d %H:%M') # 테스트 용으로 1분마다 녹화파일 저장 코드 
+#             time_str = now.strftime('%H-%M-%S')
+#             #하루마다 새파일 만들고 녹화하는 코드 
+#             #if current_date != date_str:
+#             if current_date != minute_str: # 테스트 용으로 1분마다 녹화파일 저장 코드
+#                 if video_writer:
+#                     video_writer.release()
 
-                os.makedirs(f'recordings/{date_str}', exist_ok=True)
-                filepath = f'recordings/{date_str}/{time_str}_recording.mp4'
-                h, w, _ = frame.shape
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                video_writer = cv2.VideoWriter(filepath, fourcc, fps, (w, h))
-                #current_date = date_str
-                current_date = minute_str # 테스트 용으로 1분마다 녹화파일 저장 코드
-                print(f"[저장 시작] {filepath}")
-            # 비디오 녹화 코드
-            video_writer.write(frame)
-            # print("✔️ 프레임 작성됨")
+#                 os.makedirs(f'recordings/{date_str}', exist_ok=True)
+#                 filepath = f'recordings/{date_str}/{time_str}_recording.mp4'
+#                 h, w, _ = frame.shape
+#                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+#                 video_writer = cv2.VideoWriter(filepath, fourcc, fps, (w, h))
+#                 #current_date = date_str
+#                 current_date = minute_str # 테스트 용으로 1분마다 녹화파일 저장 코드
+#                 print(f"[저장 시작] {filepath}")
+#             # 비디오 녹화 코드
+#             video_writer.write(frame)
+#             # print("✔️ 프레임 작성됨")
 
-            time.sleep(1 / fps)
+#             time.sleep(1 / fps)
 
-    except KeyboardInterrupt:
-            print("녹화 중단됨 (Ctrl+C)")
-            video_writer.release()
+#     except KeyboardInterrupt:
+#             print("녹화 중단됨 (Ctrl+C)")
+#             video_writer.release()
 
 # 비디오 저장 쓰레드 시작
-threading.Thread(target=save_video, daemon=True).start()
+#threading.Thread(target=save_video, daemon=True).start()
 
 #실시간 영상 스트리밍
-def gen(camera):
-    while True:
-        frame = camera.get_frame("byte")
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+# def gen(camera):
+#     while True:
+#         # frame = camera.get_frame("byte")
+#         yield (b'--frame\r\n'
+#                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen(camera),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/video_feed')
+# def video_feed():
+#     return Response(gen(camera),
+#                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # 스프링과 소통해서 비디오 보여줄 수 있는 코드 
 CHUNK_SIZE = 1024 * 1024  # 1MB
@@ -254,15 +255,86 @@ def serve_video(date, filename):
 # ✅ 요청한 전체 움직임 값 반환
 
 
-
+# 테스트를 위해 임시로 만든 gettotal 20을 고정으로 반환 
 @app.route("/gettotal", methods=["GET"])
 def provide_total():
-    saved_videos_path = VIDEO_PATH + str(datetime.now().date() - timedelta(days=-1))
     try:
-        value = int(get_total_motion(saved_videos_path))
-        return jsonify({"amount": value}), 200
+        return jsonify({"amount": 20}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-         
+
+# @app.route("/gettotal", methods=["GET"])
+# def provide_total():
+#     saved_videos_path = VIDEO_PATH + str(datetime.now().date() - timedelta(days=-1))
+#     try:
+#         value = int(get_total_motion(saved_videos_path))
+#         return jsonify({"amount": value}), 200
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+"""
+레이저 on off시 작동기능 관련 코드 --------------------------------------------------------
+# 레이저 on : 1 레이저 on 2 녹화 시작
+# 레이저 off : 1 레이저 off 2 영상저장 완료 3 저장된 영상에서 운동량값 추출 4 운동량값 db로 전송
+"""
+# 전역 상태 변수
+is_recording = False
+exercise_amount = 0
+recording_file = None
+
+# --- 하드웨어 관련 함수 (예시) ---
+
+def start_recording():
+    global recording_file, is_recording
+    if is_recording == False:
+        is_recording = True
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        recording_file = f"recording_{timestamp}.mp4" 
+        print(f"녹화 시작: {recording_file}")
+    else:
+        print("이미 레이저 및 녹화 작동 중")
+    # 실제 녹화 코드 추후 작성해야 함
+
+def stop_recording():
+    global is_recording
+    if is_recording == True:
+        is_recording = False
+        print("녹화 종료")
+    else:
+        print("레이저 및 녹화 작동 중이 아닙니다")
+    # 실제 녹화 끊는 코드 추후 작성해야 함
+
+def get_total_motion(filepath):
+    print("운동량: 1000")
+    return 1000  
+    # 테스트용 하드 코딩코드 추후 수정 필요
+
+
+# --- 레이저 on off 실제 작동 제어 ---
+@app.route('/start', methods=['POST'])
+def start():
+    if is_recording == False:
+        laser_on()
+        start_recording()
+        return jsonify({"message": "레이저 및 녹화 시작"})
+    else:
+        print("이미 레이저 및 녹화 작동 중")
+        return jsonify({"message": "이미 레이저 및 녹화 작동 중"})
+
+@app.route('/end', methods=['POST'])
+def end():
+    if is_recording:
+        laser_off()
+        stop_recording()
+        # 녹화된 파일 분석 → 운동량 계산
+        global recording_file
+        amount = get_total_motion(recording_file)
+        return jsonify(amount)
+    else:
+        print("레이저 및 녹화 작동 중이 아닙니다")
+        return None
+"""
+--------------------------------------------------------------------------------------------        
+"""
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
