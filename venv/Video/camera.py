@@ -25,7 +25,8 @@ mtx = np.array([[fx, 0, cx],
 class Camera:
     def __init__(self):
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (2592, 1944)}))
+        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)},
+        controls={"FrameRate" : 90}))
         self.picam2.start()
 
     def get_frame(self, mode="default"):
@@ -37,4 +38,5 @@ class Camera:
             ret, jpeg = cv2.imencode('.jpg', frame)
             return jpeg.tobytes()
 
+        # return frame
         return undistorted_frame
