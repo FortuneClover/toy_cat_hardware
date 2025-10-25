@@ -104,7 +104,7 @@ CHUNK_SIZE = 8192
 #             minute_str = now.strftime('%Y-%m-%d_%H-%M')  # 1분 단위 파일
 #             date_str = now.strftime('%Y-%m-%d')
 
-#             # 새 파일 생성 조건
+#             # 새 파일 생성 조건 ss
 #             if current_file != minute_str:
 #                 # 기존 FFmpeg 프로세스 종료
 #                 if ffmpeg_proc is not None:
